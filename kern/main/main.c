@@ -97,6 +97,11 @@ boot(void)
 	 * dev/generic/console.c).
 	 */
 
+
+	kprintf("\n");
+	kprintf("Welcome, Josh!\n");
+
+
 	kprintf("\n");
 	kprintf("OS/161 base system version %s\n", BASE_VERSION);
 	kprintf("%s", harvard_copyright);
