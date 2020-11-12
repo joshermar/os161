@@ -85,6 +85,8 @@ spinlock_data_get(volatile spinlock_data_t *sd)
  * and the SC or the behavior is *undefined*. You can only use LL/SC
  * to atomically update one machine word.
  */
+
+
 SPINLOCK_INLINE
 spinlock_data_t
 spinlock_data_testandset(volatile spinlock_data_t *sd)
@@ -93,7 +95,7 @@ spinlock_data_testandset(volatile spinlock_data_t *sd)
 	spinlock_data_t y;
 
 	/*
-	 * Test-and-set using LL/SC.
+	 * Test-and-set using LL/SC (Load-link / Store-conditional).
 	 *
 	 * Load the existing value into X, and use Y to store 1.
 	 * After the SC, Y contains 1 if the store succeeded,
