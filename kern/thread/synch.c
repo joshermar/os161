@@ -192,12 +192,15 @@ lock_acquire(struct lock *lock)
 	/* MY SOLUTION */
 	KASSERT(lock != NULL);
 	KASSERT(curthread->t_in_interrupt == false);
+
+	/* This lock is NOT reentrant. Trying to reacquire would cause a deadlock.  */
 	KASSERT(!lock_do_i_hold(lock));
 
 	spinlock_acquire(&lock->lk_splk);
 	HANGMAN_WAIT(&curthread->t_hangman, &lock->lk_hangman);
 
 	while (lock->lk_holder != NULL) {
+		/* spinlocked will be released */
 		wchan_sleep(lock->lk_wchan, &lock->lk_splk);
 	}
 

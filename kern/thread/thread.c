@@ -614,12 +614,12 @@ thread_switch(threadstate_t newstate, struct wchan *wc, struct spinlock *lk)
 
 	/* Put the thread in the right place. */
 	switch (newstate) {
-	    case S_RUN:
+	case S_RUN:
 		panic("Illegal S_RUN in thread_switch\n");
-	    case S_READY:
+	case S_READY:
 		thread_make_runnable(cur, true /*have lock*/);
 		break;
-	    case S_SLEEP:
+	case S_SLEEP:
 		cur->t_wchan_name = wc->wc_name;
 		/*
 		 * Add the thread to the list in the wait channel, and
@@ -632,7 +632,7 @@ thread_switch(threadstate_t newstate, struct wchan *wc, struct spinlock *lk)
 		threadlist_addtail(&wc->wc_threads, cur);
 		spinlock_release(lk);
 		break;
-	    case S_ZOMBIE:
+	case S_ZOMBIE:
 		cur->t_wchan_name = "ZOMBIE";
 		threadlist_addtail(&curcpu->c_zombies, cur);
 		break;
@@ -1041,7 +1041,13 @@ wchan_sleep(struct wchan *wc, struct spinlock *lk)
 	/* must not hold other spinlocks */
 	KASSERT(curcpu->c_spinlocks == 1);
 
+
+	/* interrupts will be off because I hold splk */
 	thread_switch(S_SLEEP, wc, lk);
+	/* interrupts have been turned back on by thread_switch*/
+
+	/* Hence we must reacquire the spinlock, as this is
+	the initial state at the beginning of this function */
 	spinlock_acquire(lk);
 }
 
