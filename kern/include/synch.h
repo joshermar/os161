@@ -121,7 +121,6 @@ struct cv {
         /* MY SOLUTION */
         struct wchan *cv_wchan;
         struct spinlock cv_splk;
-        volatile bool cv_condition;
         /* END MY SOLUTION */
 };
 
