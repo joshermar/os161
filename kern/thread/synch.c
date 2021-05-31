@@ -86,7 +86,7 @@ sem_destroy(struct semaphore *sem)
 }
 
 void
-P(struct semaphore *sem)
+P(struct semaphore *sem)  // Equivalent to "lock" (or, "lock one")
 {
 	KASSERT(sem != NULL);
 
@@ -121,7 +121,7 @@ P(struct semaphore *sem)
 }
 
 void
-V(struct semaphore *sem)
+V(struct semaphore *sem)  // Equivalent to "release" (or, "release one")
 {
 	KASSERT(sem != NULL);
 
@@ -276,10 +276,8 @@ cv_destroy(struct cv *cv)
 {
 	KASSERT(cv != NULL);
 
-	/* MY SOLUTION */
 	spinlock_cleanup(&cv->cv_splk);
 	wchan_destroy(cv->cv_wchan);
-	/* END MY SOLUTION */
 
 	kfree(cv->cv_name);
 	kfree(cv);
@@ -288,42 +286,34 @@ cv_destroy(struct cv *cv)
 void
 cv_wait(struct cv *cv, struct lock *lock)
 {
-	/* MY SOLUTION */
 	spinlock_acquire(&cv->cv_splk);
 
-	lock_release(lock);
-	wchan_sleep(cv->cv_wchan, &cv->cv_splk);
+	lock_release(lock);							// Release mutex
+	wchan_sleep(cv->cv_wchan, &cv->cv_splk);	// Move thread onto wait queue and sleep
 
-	spinlock_release(&cv->cv_splk);
+	// Thread is awake again  (has been signaled/notified)
+    
+    spinlock_release(&cv->cv_splk);
 
-	lock_acquire(lock);
+	lock_acquire(lock);							// Reacquire lock
 }
 
 void
 cv_signal(struct cv *cv, struct lock *lock)
 {
-	/* MY SOLUTION */
+	KASSERT(lock_do_i_hold(lock));
+
 	spinlock_acquire(&cv->cv_splk);
-
-	lock_release(lock);
 	wchan_wakeone(cv->cv_wchan, &cv->cv_splk);
-
 	spinlock_release(&cv->cv_splk);
-
-	lock_acquire(lock);
-	/* END MY SOLUTION */
 }
 
 void
 cv_broadcast(struct cv *cv, struct lock *lock)
 {
-	/* MY SOLUTION */
-	spinlock_acquire(&cv->cv_splk);
+	KASSERT(lock_do_i_hold(lock));
 
-	lock_release(lock);
+	spinlock_acquire(&cv->cv_splk);
 	wchan_wakeall(cv->cv_wchan, &cv->cv_splk);
 	spinlock_release(&cv->cv_splk);
-
-	lock_acquire(lock);
-	/* END MY SOLUTION */
 }
